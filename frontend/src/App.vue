@@ -28,10 +28,52 @@ onMounted(() => {
 
     <p v-if="loading">Cargando clientes...</p>
 
-    <ul v-else>
-      <li v-for="cliente in clientes" :key="cliente.id">
-        {{ cliente.nombre_completo }} - {{ cliente.empresa }}
-      </li>
-    </ul>
+    <table v-else>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Empresa</th>
+          <th>Teléfono</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr v-for="cliente in clientes" :key="cliente.id">
+          <td>{{ cliente.nombre_completo }}</td>
+          <td>{{ cliente.email }}</td>
+          <td>{{ cliente.empresa }}</td>
+          <td>{{ cliente.telefono }}</td>
+        </tr>
+      </tbody>
+    </table>
   </main>
 </template>
+
+<style scoped>
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+h1 {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 12px;
+  border: 1px solid #ddd;
+}
+
+th {
+  text-align: left;
+}
+</style>
