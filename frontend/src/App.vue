@@ -8,6 +8,8 @@ const clientes = ref<Cliente[]>([]);
 const loading = ref(true);
 
 const obtenerClientes = async () => {
+  loading.value = true;
+
   try {
     const response = await api.get("/clientes");
     clientes.value = response.data;
@@ -45,7 +47,8 @@ onMounted(() => {
   <main>
     <h1>Gestor de Clientes</h1>
 
-    <ClienteForm />
+<ClienteForm @cliente-creado="obtenerClientes" />
+
 
     <p v-if="loading">Cargando clientes...</p>
 

@@ -2,6 +2,10 @@
 import { ref } from "vue";
 import { api } from "../services/clientes.service";
 
+const emit = defineEmits<{
+  clienteCreado: [];
+}>();
+
 const nombre_completo = ref("");
 const email = ref("");
 const telefono = ref("");
@@ -16,7 +20,12 @@ const crearCliente = async () => {
       empresa: empresa.value,
     });
 
-    window.location.reload();
+    emit("clienteCreado");
+
+    nombre_completo.value = "";
+    email.value = "";
+    telefono.value = "";
+    empresa.value = "";
   } catch (error) {
     console.error(error);
   }
