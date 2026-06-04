@@ -1,107 +1,172 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { api } from "./services/clientes.service";
-import type { Cliente } from "./types/cliente";
-import ClienteForm from "./components/ClienteForm.vue";
+import { useRouter } from "vue-router";
+import { useAuth } from "./composables/useAuth";
+import { useTheme } from "./composables/useTheme";
 
-const clientes = ref<Cliente[]>([]);
-const loading = ref(true);
+const router = useRouter();
+const { usuario, isAuthenticated, isAdmin, logout } = useAuth();
+const { theme, toggle } = useTheme();
 
-const obtenerClientes = async () => {
-  loading.value = true;
-
-  try {
-    const response = await api.get("/clientes");
-    clientes.value = response.data;
-  } catch (error) {
-    console.error(error);
-  } finally {
-    loading.value = false;
-  }
+const cerrarSesion = () => {
+    logout();
+    router.push("/login");
 };
-
-const eliminarCliente = async (id: number) => {
-  const confirmar = confirm(
-    "¿Está seguro de eliminar este cliente?"
-  );
-
-  if (!confirmar) return;
-
-  try {
-    await api.delete(`/clientes/${id}`);
-
-    clientes.value = clientes.value.filter(
-      (cliente) => cliente.id !== id
-    );
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-onMounted(() => {
-  obtenerClientes();
-});
 </script>
 
 <template>
-  <main>
-    <h1>Gestor de Clientes</h1>
+    <div>
+        <nav v-if="isAuthenticated" class="navbar">
+            <div class="nav-inner">
+                <span class="nav-brand">Gestor de Clientes</span>
 
-<ClienteForm @cliente-creado="obtenerClientes" />
+                <div class="nav-right">
+                    <router-link v-if="isAdmin" to="/admin" class="nav-link">
+                        Panel Admin
+                    </router-link>
+                    <router-link to="/perfil" class="nav-link">
+                        Mi Perfil
+                    </router-link>
 
+                    <div class="nav-user">
+                        <span class="user-avatar">{{ usuario?.nombre?.charAt(0).toUpperCase() }}</span>
+                        <span class="user-name">{{ usuario?.nombre }}</span>
+                    </div>
 
-    <p v-if="loading">Cargando clientes...</p>
+                    <button class="btn-theme" :title="theme === 'dark' ? 'Modo claro' : 'Modo oscuro'" @click="toggle">
+                        {{ theme === "dark" ? "☀️" : "🌙" }}
+                    </button>
 
-    <table v-else>
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Email</th>
-          <th>Empresa</th>
-          <th>Teléfono</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
+                    <button class="btn-logout" @click="cerrarSesion">Salir</button>
+                </div>
+            </div>
+        </nav>
 
-      <tbody>
-        <tr v-for="cliente in clientes" :key="cliente.id">
-          <td>{{ cliente.nombre_completo }}</td>
-          <td>{{ cliente.email }}</td>
-          <td>{{ cliente.empresa }}</td>
-          <td>{{ cliente.telefono }}</td>
-          <td>
-            <button @click="eliminarCliente(cliente.id)">Eliminar</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </main>
+        <main :class="{ 'main-content': isAuthenticated }">
+            <router-view />
+        </main>
+    </div>
 </template>
 
 <style scoped>
-main {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem;
+.navbar {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    transition: background 0.25s, border-color 0.25s;
 }
 
-h1 {
-  margin-bottom: 2rem;
-  text-align: center;
+.nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
+.nav-brand {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--accent);
 }
 
-th,
-td {
-  padding: 12px;
-  border: 1px solid #ddd;
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
-th {
-  text-align: left;
+.nav-link {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+
+.nav-link:hover {
+    background: var(--bg-hover);
+}
+
+.nav-link.router-link-active {
+    color: var(--accent);
+    background: var(--accent-bg);
+}
+
+.nav-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    background: var(--accent-bg);
+    color: var(--accent-text);
+    border-radius: 50%;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-name {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-theme {
+    width: 36px;
+    height: 36px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+.btn-theme:hover {
+    background: var(--border);
+}
+
+.btn-logout {
+    padding: 6px 14px;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-logout:hover {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border-color: var(--danger-border);
+}
+
+.main-content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1rem;
 }
 </style>

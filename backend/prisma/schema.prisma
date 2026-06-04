@@ -19,3 +19,11 @@ model Cliente {
   telefono         String?
   empresa          String
 }
+
+model Usuario {
+  id       Int    @id @default(autoincrement())
+  nombre   String
+  email    String @unique
+  password String
+  rol      String @default("USUARIO")
+}

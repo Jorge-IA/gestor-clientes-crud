@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import prisma from "../prisma/prisma";
 
 export const obtenerClientes = async (
-    req: Request,
+    _req: Request,
     res: Response
 ) => {
     try {
@@ -33,6 +33,13 @@ export const crearCliente = async (
         if (!nombre_completo || !email || !empresa) {
             return res.status(400).json({
                 message: "Nombre, email y empresa son obligatorios"
+            });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                message: "El formato del email no es válido"
             });
         }
 
@@ -82,6 +89,15 @@ export const actualizarCliente = async (
             empresa
         } = req.body;
 
+        if (email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return res.status(400).json({
+                    message: "El formato del email no es válido"
+                });
+            }
+        }
+
         const cliente = await prisma.cliente.findUnique({
             where: {
                 id
@@ -125,9 +141,7 @@ export const eliminarCliente = async (
         const id = Number(req.params.id);
 
         const cliente = await prisma.cliente.findUnique({
-            where: {
-                id
-            }
+            where: { id }
         });
 
         if (!cliente) {
@@ -136,10 +150,14 @@ export const eliminarCliente = async (
             });
         }
 
+        if (cliente.email === req.usuario?.email) {
+            return res.status(403).json({
+                message: "No puedes eliminar tu propio registro"
+            });
+        }
+
         await prisma.cliente.delete({
-            where: {
-                id
-            }
+            where: { id }
         });
 
         res.status(200).json({
