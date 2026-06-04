@@ -2,13 +2,26 @@ import { Request, Response } from "express";
 import prisma from "../prisma/prisma";
 
 export const obtenerClientes = async (
-    _req: Request,
+    req: Request,
     res: Response
 ) => {
     try {
-        const clientes = await prisma.cliente.findMany();
+        const page = Math.max(1, Number(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
+        const skip = (page - 1) * limit;
 
-        res.status(200).json(clientes);
+        const [clientes, total] = await Promise.all([
+            prisma.cliente.findMany({ skip, take: limit }),
+            prisma.cliente.count(),
+        ]);
+
+        res.status(200).json({
+            data: clientes,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        });
     } catch (error) {
         console.error(error);
 

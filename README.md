@@ -68,6 +68,7 @@ El archivo `backend/.env` ya está incluido y listo para usar:
 ```env
 DATABASE_URL="file:./dev.db"
 JWT_SECRET="gestor_clientes_secret_2024"
+CORS_ORIGIN="http://localhost:5173"
 ```
 
 No se requiere ninguna configuración adicional.
@@ -128,7 +129,7 @@ Pueden registrarse desde la pantalla **"Crear cuenta"** en `/registro`. Los nuev
 
 | Método | Ruta | Rol requerido | Descripción |
 |--------|------|---------------|-------------|
-| GET | `/clientes` | Cualquiera | Listar todos los clientes |
+| GET | `/clientes?page=1&limit=10` | Cualquiera | Listar clientes paginados — devuelve `{ data, total, page, limit, totalPages }` |
 | POST | `/clientes` | Admin | Crear cliente |
 | PUT | `/clientes/:id` | Admin | Actualizar cliente |
 | DELETE | `/clientes/:id` | Admin | Eliminar cliente |
@@ -159,6 +160,7 @@ gestor-clientes/
 │       │   ├── auth.controller.ts
 │       │   ├── clientes.controller.ts
 │       │   └── usuarios.controller.ts
+│       ├── config.ts               # JWT_SECRET centralizado
 │       ├── middlewares/
 │       │   └── auth.middleware.ts  # verificarToken, soloAdmin
 │       ├── routes/

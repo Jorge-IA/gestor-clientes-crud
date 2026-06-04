@@ -2,8 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import prisma from "../prisma/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET ?? "gestor_clientes_secret_2024";
+import { JWT_SECRET } from "../config";
 
 export const registro = async (req: Request, res: Response) => {
     try {

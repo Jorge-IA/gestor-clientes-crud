@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET ?? "gestor_clientes_secret_2024";
+import { JWT_SECRET } from "../config";
 
 export interface UsuarioPayload {
     id: number;

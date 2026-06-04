@@ -15,12 +15,18 @@ const tab = ref<"clientes" | "usuarios">("clientes");
 const clientes = ref<Cliente[]>([]);
 const loadingClientes = ref(true);
 const clienteSeleccionado = ref<Cliente | null>(null);
+const paginaActual = ref(1);
+const totalPaginas = ref(1);
+const totalClientes = ref(0);
+const LIMIT = 10;
 
 const obtenerClientes = async () => {
     loadingClientes.value = true;
     try {
-        const res = await api.get("/clientes");
-        clientes.value = res.data;
+        const res = await api.get("/clientes", { params: { page: paginaActual.value, limit: LIMIT } });
+        clientes.value = res.data.data;
+        totalPaginas.value = res.data.totalPages;
+        totalClientes.value = res.data.total;
     } catch (e) {
         console.error(e);
     } finally {
@@ -32,7 +38,9 @@ const eliminarCliente = async (id: number) => {
     if (!confirm("¿Está seguro de eliminar este cliente?")) return;
     try {
         await api.delete(`/clientes/${id}`);
-        clientes.value = clientes.value.filter((c) => c.id !== id);
+        const eraUltimoEnPagina = clientes.value.length === 1 && paginaActual.value > 1;
+        if (eraUltimoEnPagina) paginaActual.value -= 1;
+        obtenerClientes();
     } catch (e: any) {
         alert(e?.response?.data?.message ?? "Error al eliminar");
     }
@@ -45,6 +53,12 @@ const editarCliente = (cliente: Cliente) => {
 
 const onClienteGuardado = () => {
     clienteSeleccionado.value = null;
+    paginaActual.value = 1;
+    obtenerClientes();
+};
+
+const irAPagina = (p: number) => {
+    paginaActual.value = p;
     obtenerClientes();
 };
 
@@ -101,7 +115,7 @@ onMounted(() => {
         <div class="tabs">
             <button :class="['tab', { active: tab === 'clientes' }]" @click="cambiarTab('clientes')">
                 Clientes
-                <span class="tab-badge">{{ clientes.length }}</span>
+                <span class="tab-badge">{{ totalClientes }}</span>
             </button>
             <button :class="['tab', { active: tab === 'usuarios' }]" @click="cambiarTab('usuarios')">
                 Usuarios del sistema
@@ -150,6 +164,15 @@ onMounted(() => {
                             </tr>
                         </tbody>
                     </table>
+                    <div v-if="totalPaginas > 1" class="pagination">
+                        <button class="page-btn" :disabled="paginaActual === 1" @click="irAPagina(paginaActual - 1)">
+                            ‹ Anterior
+                        </button>
+                        <span class="page-info">Página {{ paginaActual }} de {{ totalPaginas }}</span>
+                        <button class="page-btn" :disabled="paginaActual === totalPaginas" @click="irAPagina(paginaActual + 1)">
+                            Siguiente ›
+                        </button>
+                    </div>
                 </div>
             </div>
         </template>
@@ -375,4 +398,33 @@ tr.row-yo td { background: var(--accent-bg); }
 }
 
 .state-msg.empty { color: var(--text-faint); }
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-top: 1px solid var(--border-light);
+}
+
+.page-btn {
+    padding: 6px 14px;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.page-btn:hover:not(:disabled) { background: var(--bg-hover); }
+.page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.page-info {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
 </style>
