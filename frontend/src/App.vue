@@ -18,6 +18,24 @@ const obtenerClientes = async () => {
   }
 };
 
+const eliminarCliente = async (id: number) => {
+  const confirmar = confirm(
+    "¿Está seguro de eliminar este cliente?"
+  );
+
+  if (!confirmar) return;
+
+  try {
+    await api.delete(`/clientes/${id}`);
+
+    clientes.value = clientes.value.filter(
+      (cliente) => cliente.id !== id
+    );
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 onMounted(() => {
   obtenerClientes();
 });
@@ -38,6 +56,7 @@ onMounted(() => {
           <th>Email</th>
           <th>Empresa</th>
           <th>Teléfono</th>
+          <th>Acciones</th>
         </tr>
       </thead>
 
@@ -47,6 +66,9 @@ onMounted(() => {
           <td>{{ cliente.email }}</td>
           <td>{{ cliente.empresa }}</td>
           <td>{{ cliente.telefono }}</td>
+          <td>
+            <button @click="eliminarCliente(cliente.id)">Eliminar</button>
+          </td>
         </tr>
       </tbody>
     </table>
