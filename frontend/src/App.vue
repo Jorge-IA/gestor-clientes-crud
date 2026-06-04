@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import { api } from "./services/clientes.service";
 import type { Cliente } from "./types/cliente";
+import ClienteForm from "./components/ClienteForm.vue";
 
 const clientes = ref<Cliente[]>([]);
 const loading = ref(true);
@@ -25,6 +26,8 @@ onMounted(() => {
 <template>
   <main>
     <h1>Gestor de Clientes</h1>
+
+    <ClienteForm />
 
     <p v-if="loading">Cargando clientes...</p>
 
